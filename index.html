@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Migraine Management</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .question {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .btn {
+            padding: 18px 25px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: #333;
+        }
+        
+        .action-item {
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 15px 0;
+            text-align: left;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-item h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        
+        .action-item p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            margin-top: 20px;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            margin-top: 15px;
+        }
+        
+        .medication-warning {
+            background: linear-gradient(135deg, #ffecd2, #fcb69f);
+            color: #d35400;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .timer {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Migraine Management Guide</h1>
+            <p>Your personalized decision tree for migraine relief</p>
+        </div>
+        
+        <div id="step-container">
+            <!-- Content will be dynamically populated -->
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 'start';
+        let userResponses = {};
+        
+        const steps = {
+            start: {
+                question: "How are you feeling right now?",
+                options: [
+                    { text: "I'm having a migraine attack", action: "severity" },
+                    { text: "I feel a migraine coming on (prodrome)", action: "early_intervention" },
+                    { text: "I want to plan for prevention", action: "prevention_check" }
+                ]
+            },
+            
+            severity: {
+                question: "How severe is your migraine right now? (1-10 scale)",
+                options: [
+                    { text: "Mild (1-3) - I can function with some difficulty", action: "mild_treatment" },
+                    { text: "Moderate (4-6) - Significant impact on activities", action: "moderate_treatment" },
+                    { text: "Severe (7-10) - Unable to function normally", action: "severe_treatment" }
+                ]
+            },
+            
+            early_intervention: {
+                question: "Great catch! Early intervention is key. What prodrome symptoms are you experiencing?",
+                options: [
+                    { text: "Mood changes, food cravings, neck stiffness", action: "prodrome_actions" },
+                    { text: "Visual changes or aura symptoms", action: "aura_actions" },
+                    { text: "Just a 'feeling' that one is coming", action: "general_prevention" }
+                ]
+            },
+            
+            mild_treatment: {
+                question: "For mild migraine, let's start with gentle interventions. Have you taken medication recently?",
+                options: [
+                    { text: "No medication in the last 3 days", action: "mild_med_ok" },
+                    { text: "Took Naproxen 1-2 days ago", action: "mild_alternative" },
+                    { text: "Have been taking pain meds for several days", action: "rebound_risk" }
+                ]
+            },
+            
+            moderate_treatment: {
+                question: "For moderate migraine, we need more comprehensive treatment. Medication status?",
+                options: [
+                    { text: "Haven't taken pain medication recently", action: "moderate_med_plan" },
+                    { text: "Already took some medication, not helping much", action: "moderate_escalate" },
+                    { text: "Concerned about medication overuse", action: "non_med_focus" }
+                ]
+            },
+            
+            severe_treatment: {
+                question: "This is a severe attack. Safety and comfort are priority. Are you in a safe place?",
+                options: [
+                    { text: "Yes, I'm at home and can rest", action: "severe_home_care" },
+                    { text: "I'm at work/public place", action: "severe_away_care" },
+                    { text: "I need immediate medical attention", action: "emergency_care" }
+                ]
+            }
+        };
+        
+        const actions = {
+            mild_med_ok: {
+                title: "Mild Migraine Treatment Plan",
+                content: `
+                    <h3>💊 Medication</h3>
+                    <p>Take 2 Naproxen tablets (as per your usual protocol)</p>
+                    
+                    <h3>🌿 Immediate Comfort Measures</h3>
+                    <p>• Find a quiet, dark room</p>
+                    <p>• Apply cold compress to forehead or neck</p>
+                    <p>• Drink a full glass of water</p>
+                    <p>• Use your Allay green light therapy lamp (20-60 minutes)</p>
+                    
+                    <h3>⚡ Nerivio Device</h3>
+                    <p>Consider using Nerivio for acute treatment (follow device instructions)</p>
+                    
+                    <h3>⏰ Next Steps</h3>
+                    <p>Re-evaluate in 2 hours. If no improvement, consider escalating treatment.</p>
+                `,
+                progress: 70
+            },
+            
+            mild_alternative: {
+                title: "Alternative Treatment for Mild Migraine",
+                content: `
+                    <h3>💊 Medication Alternative</h3>
+                    <p>Since you took Naproxen recently, try: Tylenol + Ibuprofen combination</p>
+                    <p>This helps avoid potential rebound headaches</p>
+                    
+                    <h3>🌿 Enhanced Comfort Measures</h3>
+                    <p>• Dark, quiet environment</p>
+                    <p>• Cold compress (15-20 minutes)</p>
+                    <p>• Hydration - drink 16-20 oz water slowly</p>
+                    <p>• Allay green light therapy</p>
+                    <p>• Gentle neck stretches if tolerated</p>
+                    
+                    <h3>⚡ Nerivio Treatment</h3>
+                    <p>Use Nerivio device for acute migraine treatment</p>
+                `,
+                progress: 70
+            },
+            
+            moderate_med_plan: {
+                title: "Moderate Migraine - Comprehensive Treatment",
+                content: `
+                    <h3>💊 Medication Protocol</h3>
+                    <p>Take 2 Naproxen tablets immediately</p>
+                    
+                    <h3>🛡️ Full Migraine Protocol</h3>
+                    <p>• Immediate: Dark room, minimal stimulation</p>
+                    <p>• Hydration: 20-24 oz water over 30 minutes</p>
+                    <p>• Cold therapy: Ice pack to head/neck for 15-20 min</p>
+                    <p>• Allay green light: 30-60 minute session</p>
+                    
+                    <h3>⚡ Nerivio Device</h3>
+                    <p>Use Nerivio for acute treatment - this can be very effective for moderate attacks</p>
+                    
+                    <h3>📱 Track This Attack</h3>
+                    <p>Log in N1-Headache app: severity, triggers, treatments used</p>
+                    
+                    <h3>⏰ Timeline</h3>
+                    <p>Re-assess in 2 hours. If worsening or no improvement, consider rest of day off</p>
+                `,
+                progress: 80
+            },
+            
+            severe_home_care: {
+                title: "Severe Migraine - Home Management",
+                content: `
+                    <h3>🚨 Immediate Priority Actions</h3>
+                    <p>• Cancel non-essential activities for today</p>
+                    <p>• Inform family/housemates you need quiet</p>
+                    <p>• Turn off all electronic devices</p>
+                    
+                    <h3>💊 Medication</h3>
+                    <p>Take your usual Naproxen (2 tablets) if not taken recently</p>
+                    <p>If already medicated, avoid additional doses for now</p>
+                    
+                    <h3>🛏️ Comfort Protocol</h3>
+                    <p>• Darkest room possible</p>
+                    <p>• Cool, damp cloth on forehead</p>
+                    <p>• Comfortable position (often side-lying works best)</p>
+                    <p>• Use Allay green light if you can tolerate any light</p>
+                    
+                    <h3>⚡ Nerivio Device</h3>
+                    <p>Definitely use Nerivio - it can be particularly effective for severe attacks</p>
+                    
+                    <h3>⏰ Recovery Plan</h3>
+                    <p>Plan for 4-6 hours of complete rest. Set gentle alarm to check status.</p>
+                `,
+                progress: 90
+            },
+            
+            rebound_risk: {
+                title: "Medication Overuse - Alternative Approach",
+                content: `
+                    <div class="medication-warning">
+                    ⚠️ You may be at risk for medication overuse headaches. Let's try non-medication approaches first.
+                    </div>
+                    
+                    <h3>🌿 Non-Medication Strategies</h3>
+                    <p>• Hydration: 24+ oz water over next hour</p>
+                    <p>• Cold/heat therapy alternating every 15 minutes</p>
+                    <p>• Allay green light therapy - extended session</p>
+                    <p>• Gentle movement if possible (slow walking)</p>
+                    
+                    <h3>⚡ Nerivio Device</h3>
+                    <p>This is perfect timing for Nerivio - non-pharmaceutical option</p>
+                    
+                    <h3>🧘 Mind-Body Techniques</h3>
+                    <p>• Progressive muscle relaxation</p>
+                    <p>• Deep breathing exercises</p>
+                    <p>• Meditation apps if tolerated</p>
+                    
+                    <h3>📞 Consider Medical Contact</h3>
+                    <p>If this pattern continues, discuss with your migraine specialist about rescue medications</p>
+                `,
+                progress: 85
+            },
+            
+            prodrome_actions: {
+                title: "Early Intervention - Prodrome Phase",
+                content: `
+                    <h3>🎯 Excellent Timing!</h3>
+                    <p>Catching migraine in prodrome phase gives you the best chance of prevention</p>
+                    
+                    <h3>⚡ Immediate Actions</h3>
+                    <p>• Use Nerivio device immediately (prevention mode)</p>
+                    <p>• Increase water intake significantly</p>
+                    <p>• Light meal if experiencing cravings</p>
+                    <p>• Gentle neck/shoulder stretches</p>
+                    
+                    <h3>🌿 Environmental Modifications</h3>
+                    <p>• Reduce bright lights and loud sounds</p>
+                    <p>• Cancel stressful activities if possible</p>
+                    <p>• Plan lighter schedule for next 24 hours</p>
+                    
+                    <h3>💊 Medication Decision</h3>
+                    <p>Consider taking Naproxen now if you haven't used it recently - early treatment is often more effective</p>
+                    
+                    <h3>📱 Track This</h3>
+                    <p>Log prodrome symptoms in N1-Headache app to identify patterns</p>
+                `,
+                progress: 60
+            },
+            
+            prevention_check: {
+                title: "Prevention Strategy Review",
+                content: `
+                    <h3>🛡️ Your Current Prevention Plan</h3>
+                    <p>• Quarterly Botox injections</p>
+                    <p>• Memantine 20mg daily (started May 2025)</p>
+                    <p>• Nerivio device (every other day prevention)</p>
+                    
+                    <h3>📊 Tracking & Analysis</h3>
+                    <p>• Continue N1-Headache app logging</p>
+                    <p>• Note any changes since starting memantine</p>
+                    <p>• Track Allay green light therapy effectiveness</p>
+                    
+                    <h3>🎯 Trigger Management</h3>
+                    <p>• Alcohol: Complete avoidance during trial period</p>
+                    <p>• Sleep: Consistent schedule, even weekends</p>
+                    <p>• Travel: Pre-travel Nerivio, hydration protocol</p>
+                    
+                    <h3>📅 Questions for Next Specialist Visit</h3>
+                    <p>• Memantine effectiveness timeline expectations</p>
+                    <p>• Combination therapy optimization</p>
+                    <p>• Emergency rescue medication options</p>
+                `,
+                progress: 100
+            },
+            
+            moderate_escalate: {
+                title: "Moderate Migraine - Treatment Enhancement",
+                content: `
+                    <h3>💊 Additional Support</h3>
+                    <p>Since current medication isn't helping much:</p>
+                    <p>• Wait 30 more minutes before additional medication</p>
+                    <p>• Or switch to Tylenol + Ibuprofen combination</p>
+                    
+                    <h3>🌿 Enhanced Non-Med Protocol</h3>
+                    <p>• Complete sensory rest (dark, quiet, cool)</p>
+                    <p>• Extended Allay green light session</p>
+                    <p>• Ice pack rotation: head, neck, shoulders</p>
+                    <p>• Increase hydration significantly</p>
+                    
+                    <h3>⚡ Nerivio Treatment</h3>
+                    <p>Use Nerivio device - can provide additional relief</p>
+                    
+                    <h3>⚠️ Escalation Plan</h3>
+                    <p>If no improvement in 2 hours, treat as severe attack</p>
+                `,
+                progress: 80
+            },
+            
+            non_med_focus: {
+                title: "Non-Medication Focus Protocol",
+                content: `
+                    <h3>🌿 Comprehensive Non-Med Approach</h3>
+                    <p>Smart choice to avoid medication overuse</p>
+                    
+                    <h3>⚡ Device Therapy</h3>
+                    <p>• Nerivio device for acute treatment</p>
+                    <p>• Extended Allay green light sessions</p>
+                    
+                    <h3>🧊 Physical Interventions</h3>
+                    <p>• Cold therapy cycles (20 min on, 10 min off)</p>
+                    <p>• Gentle neck/shoulder massage</p>
+                    <p>• Progressive muscle relaxation</p>
+                    
+                    <h3>💧 Hydration Protocol</h3>
+                    <p>• 24+ oz water over next hour</p>
+                    <p>• Continue steady intake</p>
+                    
+                    <h3>🏠 Environment</h3>
+                    <p>• Complete darkness or Allay light only</p>
+                    <p>• Cool, quiet space</p>
+                    <p>• Comfortable positioning</p>
+                `,
+                progress: 75
+            },
+            
+            severe_away_care: {
+                title: "Severe Migraine - Away From Home",
+                content: `
+                    <h3>🚗 Priority: Get Home Safely</h3>
+                    <p>• Do NOT drive yourself</p>
+                    <p>• Call someone for transportation</p>
+                    <p>• Use rideshare if necessary</p>
+                    
+                    <h3>⚡ Immediate Actions</h3>
+                    <p>• Find darkest, quietest space available</p>
+                    <p>• Use Nerivio device now</p>
+                    <p>• Take medication if available</p>
+                    
+                    <h3>🏢 If You Must Stay</h3>
+                    <p>• Find private room or quiet space</p>
+                    <p>• Inform colleagues/supervisor</p>
+                    <p>• Use any available cold source</p>
+                    <p>• Minimize all activities</p>
+                    
+                    <h3>📞 Get Support</h3>
+                    <p>• Contact emergency contact</p>
+                    <p>• Arrange coverage for responsibilities</p>
+                `,
+                progress: 85
+            },
+            
+            emergency_care: {
+                title: "Emergency Medical Attention",
+                content: `
+                    <h3>🚨 When to Seek Immediate Care</h3>
+                    
+                    <h3>🏥 Go to ER if you have:</h3>
+                    <p>• Sudden, severe headache unlike any before</p>
+                    <p>• Headache with fever, stiff neck, confusion</p>
+                    <p>• Headache after head injury</p>
+                    <p>• Vision loss, weakness, speech problems</p>
+                    
+                    <h3>📞 Call 911 if:</h3>
+                    <p>• Difficulty speaking or understanding</p>
+                    <p>• Weakness on one side</p>
+                    <p>• Severe confusion</p>
+                    <p>• High fever with headache</p>
+                    
+                    <h3>📋 Bring to Hospital:</h3>
+                    <p>• Current medication list</p>
+                    <p>• N1-Headache app data</p>
+                    <p>• Emergency contacts</p>
+                    <p>• Insurance information</p>
+                    
+                    <div class="medication-warning">
+                    🚨 Trust your instincts. If this feels different or dangerous, seek immediate care.
+                    </div>
+                `,
+                progress: 100
+            },
+            
+            aura_actions: {
+                title: "Aura Response Protocol",
+                content: `
+                    <h3>⚡ Act Fast During Aura</h3>
+                    <p>You have a narrow window for prevention</p>
+                    
+                    <h3>💊 Immediate Medication</h3>
+                    <p>Take 2 Naproxen RIGHT NOW if available</p>
+                    <p>Don't wait for pain to start</p>
+                    
+                    <h3>⚡ Device Activation</h3>
+                    <p>• Start Nerivio device immediately</p>
+                    <p>• Begin Allay green light therapy</p>
+                    
+                    <h3>🌿 Rapid Environmental Control</h3>
+                    <p>• Get to darkest available space</p>
+                    <p>• Reduce all sensory input</p>
+                    <p>• Drink 12-16 oz water quickly</p>
+                    
+                    <h3>📱 Quick Actions</h3>
+                    <p>• Cancel next 4-6 hours of activities</p>
+                    <p>• Alert others about potential migraine</p>
+                    
+                    <div class="timer">
+                    ⚡ Time is critical - every minute counts during aura!
+                    </div>
+                `,
+                progress: 85
+            },
+            
+            general_prevention: {
+                title: "General Prevention Protocol",
+                content: `
+                    <h3>🎯 Trust Your Body's Signals</h3>
+                    <p>Your intuition about incoming migraines is valuable</p>
+                    
+                    <h3>⚡ Device Prevention</h3>
+                    <p>• Use Nerivio in prevention mode</p>
+                    <p>• Start Allay green light therapy</p>
+                    
+                    <h3>💊 Medication Decision</h3>
+                    <p>Consider early Naproxen if you haven't used it recently</p>
+                    <p>Early treatment is often more effective</p>
+                    
+                    <h3>🌿 Supportive Measures</h3>
+                    <p>• Increase hydration significantly</p>
+                    <p>• Reduce environmental triggers</p>
+                    <p>• Lighten today's activities</p>
+                    <p>• Avoid known triggers</p>
+                    
+                    <h3>📱 Documentation</h3>
+                    <p>Log prodrome feelings in N1-Headache app</p>
+                    <p>Track prevention attempts and outcomes</p>
+                `,
+                progress: 70
+            }
+        };
+        
+        function showStep(stepId) {
+            const container = document.getElementById('step-container');
+            const progressBar = document.getElementById('progress');
+            
+            if (steps[stepId]) {
+                const step = steps[stepId];
+                container.innerHTML = `
+                    <div class="question">${step.question}</div>
+                    <div class="options">
+                        ${step.options.map(option => 
+                            `<button class="btn btn-primary" onclick="handleChoice('${option.action}')">${option.text}</button>`
+                        ).join('')}
+                    </div>
+                    ${stepId !== 'start' ? '<button class="btn back-btn" onclick="goBack()">← Go Back</button>' : ''}
+                `;
+                progressBar.style.width = '30%';
+            } else if (actions[stepId]) {
+                const action = actions[stepId];
+                container.innerHTML = `
+                    <div class="action-item">
+                        ${action.content}
+                    </div>
+                    <button class="btn restart-btn" onclick="restart()">🔄 Start Over</button>
+                    <button class="btn back-btn" onclick="goBack()">← Go Back</button>
+                `;
+                progressBar.style.width = action.progress + '%';
+            }
+            
+            currentStep = stepId;
+        }
+        
+        function handleChoice(action) {
+            userResponses[currentStep] = action;
+            showStep(action);
+        }
+        
+        function goBack() {
+            if (currentStep !== 'start') {
+                showStep('start');
+            }
+        }
+        
+        function restart() {
+            currentStep = 'start';
+            userResponses = {};
+            showStep('start');
+        }
+        
+        // Initialize the app
+        showStep('start');
+    </script>
+</body>
+</html>
